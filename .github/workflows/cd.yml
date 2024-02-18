@@ -169,7 +169,5 @@ jobs:
             ${{ github.workspace }}
           tag_name: ${{ steps.version.outputs.new_version }}
           release_name: Release ${{ steps.version.outputs.new_version }}
-          body: |
-            $(ls)
-            $(cat release_notes.md)
+          body_path: release_notes.md
           token: ${{ secrets.GITHUB_TOKEN }}
