@@ -98,14 +98,14 @@ jobs:
           echo "NEW VERSION SHOULD BE => $new_version"
           echo "::set-output name=new_version::$new_version"
 
-      - name: Determine commits since last tag
-        id: commits
+      - name: Get previous tag
+        id: previous_tag
         run: |
-          last_tag=$(git describe --abbrev=0 --tags)
-          commit_range="${last_tag}..HEAD"
-          git log --pretty=format:"%h %s" "$commit_range" > commits.txt
+          previous_tag=$(git describe --abbrev=0 --tags ${{ steps.version.outputs.new_version }}^)
+          echo "::set-output name=previous_tag::$previous_tag"
 
       - name: Create new tag
+        id: new_tag
         if: steps.commits.outputs.new_version != '0.0.0'
         run: git tag -a ${{ steps.version.outputs.new_version }} -m "Version ${{ steps.version.outputs.new_version }}"
         env:
@@ -114,30 +114,39 @@ jobs:
       - name: Generate release notes
         id: release_notes
         run: |
-          while IFS= read -r line; do
-            commit_hash=$(echo "$line" | awk '{print $1}')
-            commit_msg=$(echo "$line" | awk '{$1=""; print $0}')
-            case "$commit_msg" in
+          echo "## What's changed" > release_notes.md
+          git log --pretty=format:"%h %s" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
+          while read line; do
+            case "$line" in
               *'feat:'*)
-                echo "* **Feature:** ${commit_msg#*:}"
+                echo "* **Feature:** ${line#*:}" >> release_notes.md
                 ;;
               *'fix:'*)
-                echo "* **Fix:** ${commit_msg#*:}"
+                echo "* **Fix:** ${line#*:}" >> release_notes.md
                 ;;
               *'BREAKING CHANGE:'*)
-                echo "* **Breaking Change:** ${commit_msg#*:}"
+                echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
                 ;;
               *)
-                echo "* ${commit_msg}"
+                echo "* ${line}" >> release_notes.md
                 ;;
             esac
-          done < commits.txt > release_notes.txt
+          done
+
+          echo "" >> release_notes.md
+          echo "## New contributors" >> release_notes.md
+          git log --format="%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | sort -u >> release_notes.md
+
+          echo "" >> release_notes.md
+          echo "## Contributors" >> release_notes.md
+          git log --format="%an" | sort -u >> release_notes.md
+
         continue-on-error: false
 
       - name: Debug release notes
         id: debug_release_notes
         run: |
-          cat release_notes.txt
+          cat release_notes.md
         continue-on-error: false
 
       - name: Push new tag
@@ -155,6 +164,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.new_version }}
           release_name: Release ${{ steps.version.outputs.new_version }}
           body: |
-            Release notes for version ${{ steps.version.outputs.new_version }}:
-            cat release_notes.txt
+            ls
+            cat release_notes.md
           token: ${{ secrets.GITHUB_TOKEN }}
