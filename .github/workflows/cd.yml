@@ -73,7 +73,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./
+            ${{ github.workspace }}
           tag_name: ${{ needs.get-latest-release-number.outputs.latest_release_number }}
           release_name: Release ${{ needs.get-latest-release-number.outputs.latest_release_number }}
           body: |
