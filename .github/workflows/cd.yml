@@ -67,10 +67,18 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          git fetch --tags
+          previous_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+          echo "PREVIOUS TAG => $previous_tag"
+          echo "::set-output name=previous_tag::$previous_tag"
+
       - name: Determine next version
         id: version
         run: |
-          last_tag=$(git describe --abbrev=0 --tags)
+          last_tag=${{ steps.previous_tag.outputs.previous_tag }}
           commit_range="${last_tag}..HEAD"
           major=0
           minor=0
@@ -101,14 +109,6 @@ jobs:
           fi
           echo "NEW VERSION SHOULD BE => $new_version"
           echo "::set-output name=new_version::$new_version"
-
-      - name: Get previous tag
-        id: previous_tag
-        run: |
-          git fetch --tags
-          previous_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
-          echo "PREVIOUS TAG => $previous_tag"
-          echo "::set-output name=previous_tag::$previous_tag"
 
       - name: Create new tag
         id: new_tag
