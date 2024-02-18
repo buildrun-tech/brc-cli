@@ -10,7 +10,11 @@ jobs:
     outputs:
       new_version: ${{ steps.get-latest-release.outputs.new_version }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+
       - name: Determine next version
         id: version
         run: |
