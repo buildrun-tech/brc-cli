@@ -5,11 +5,14 @@ BRC is the command line interface that will boost your productivity in Java Deve
 ### Installation
 
 1° - Download the executable from `/bin` folder
+
 2° - Extract and move to your favorite folder
+
 3° - Create an alias for this executable. Ex:
 ```
 alias brc="<path to brc executable folder>/brc"
 ```
+
 4° - Done!
 
 ### Usage
