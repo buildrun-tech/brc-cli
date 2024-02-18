@@ -66,8 +66,9 @@ jobs:
 
       - name: Compile to native image
         run: |
-          cd "${{ github.workspace }}"
-          ./app/mvnw -Pnative native:compile
+          pwd
+          ls
+          mvn -Pnative native:compile --file app/pom.xml
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
