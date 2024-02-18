@@ -87,6 +87,9 @@ jobs:
               *'BREAKING CHANGE:'*)
                 major=$((major + 1))
                 ;;
+              *)
+                patch=$((patch + 1))
+                ;;
             esac
           done < <(git log --pretty=format:"%h %s" "$commit_range")
           if [ $major -gt 0 ]; then
