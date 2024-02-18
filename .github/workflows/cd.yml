@@ -81,33 +81,30 @@ jobs:
           git fetch
           last_tag=${{ steps.previous_tag.outputs.previous_tag }}
           commit_range="${last_tag}..HEAD"
-          major=0
-          minor=0
-          patch=0
+          major=$(echo "$last_tag" | cut -d. -f1)
+          minor=$(echo "$last_tag" | cut -d. -f2)
+          patch=$(echo "$last_tag" | cut -d. -f3)
           while IFS= read -r line; do
             subject=$(echo "$line" | cut -d' ' -f2-)  # Extract the commit subject
             case "$subject" in
               *'feat:'*)
                 minor=$((minor + 1))
+                patch=0
                 ;;
               *'fix:'*)
                 patch=$((patch + 1))
                 ;;
               *'BREAKING CHANGE:'*)
                 major=$((major + 1))
+                minor=0
+                patch=0
                 ;;
               *)
                 patch=$((patch + 1))
                 ;;
             esac
           done < <(git log --pretty=format:"%h %s" "$commit_range")
-          if [ $major -gt 0 ]; then
-            new_version="$((major + 1)).0.0"
-          elif [ $minor -gt 0 ]; then
-            new_version="$major.$((minor + 1)).0"
-          else
-            new_version="$major.$minor.$((patch + 1))"
-          fi
+          new_version="$major.$minor.$patch"
           echo "NEW VERSION SHOULD BE => $new_version"
           echo "::set-output name=new_version::$new_version"
 
