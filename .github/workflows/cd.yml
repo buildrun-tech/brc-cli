@@ -101,7 +101,7 @@ jobs:
       - name: Determine commits since last tag
         id: commits
         run: |
-          last_tag=$(git describe --abbrev=0)
+          last_tag=$(git describe --abbrev=0 --tags)
           commit_range="${last_tag}..HEAD"
           git log --pretty=format:"%h %s" "$commit_range" > commits.txt
 
