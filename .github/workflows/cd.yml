@@ -76,7 +76,8 @@ jobs:
           minor=0
           patch=0
           while IFS= read -r line; do
-            case "$line" in
+            subject=$(echo "$line" | cut -d' ' -f2-)  # Extract the commit subject
+            case "$subject" in
               *'feat:'*)
                 minor=$((minor + 1))
                 ;;
@@ -87,7 +88,7 @@ jobs:
                 major=$((major + 1))
                 ;;
             esac
-          done < <(git log --pretty=format:"%s" "$commit_range")
+          done < <(git log --pretty=format:"%h %s" "$commit_range")
           if [ $major -gt 0 ]; then
             new_version="$((major + 1)).0.0"
           elif [ $minor -gt 0 ]; then
@@ -101,7 +102,8 @@ jobs:
       - name: Get previous tag
         id: previous_tag
         run: |
-          previous_tag=$(git describe --abbrev=0 --tags ${{ steps.version.outputs.new_version }}^)
+          git fetch --tags
+          previous_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
           echo "::set-output name=previous_tag::$previous_tag"
 
       - name: Create new tag
