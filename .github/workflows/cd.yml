@@ -104,6 +104,7 @@ jobs:
         run: |
           git fetch --tags
           previous_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+          echo "PREVIOUS TAG => $previous_tag"
           echo "::set-output name=previous_tag::$previous_tag"
 
       - name: Create new tag
