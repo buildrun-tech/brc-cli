@@ -18,7 +18,7 @@ jobs:
       - name: Determine next version
         id: version
         run: |
-          last_tag=$(git describe --abbrev=0)
+          last_tag=$(git describe --abbrev=0 --always)
           commit_range="${last_tag}..HEAD"
           major=0
           minor=0
