@@ -42,7 +42,7 @@ jobs:
           echo "::set-output name=new_version::$new_version"
 
   re-build:
-    needs: get-latest-release-number
+    needs: determine-next-version-number
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
         run: mvn -B package --file app/pom.xml
 
   re-test:
-    needs: get-latest-release-number
+    needs: determine-next-version-number
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -103,9 +103,9 @@ jobs:
         with:
           files: |
             ${{ github.workspace }}
-          tag_name: ${{ needs.get-latest-release-number.outputs.new_version }}
-          release_name: Release ${{ needs.get-latest-release-number.outputs.new_version }}
+          tag_name: ${{ needs.determine-next-version-number.outputs.new_version }}
+          release_name: Release ${{ needs.determine-next-version-number.outputs.new_version }}
           body: |
-            $(echo "Release notes for version ${{ needs.get-latest-release-number.outputs.new_version }}:")
+            $(echo "Release notes for version ${{ needs.determine-next-version-number.outputs.new_version }}:")
             $(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
           token: ${{ secrets.GITHUB_TOKEN }}
