@@ -65,13 +65,15 @@ jobs:
           native-image --version
 
       - name: Compile to native image
-        run: ./app/mvnw -Pnative native:compile
+        run: |
+          cd "${{ github.workspace }}"
+          ./app/mvnw -Pnative native:compile
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./target
+            ${{ github.workspace }}
           tag_name: ${{ needs.get-latest-release-number.outputs.latest_release_number }}
           release_name: Release ${{ needs.get-latest-release-number.outputs.latest_release_number }}
           body: |
