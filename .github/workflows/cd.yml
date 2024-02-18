@@ -147,6 +147,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.new_version }}
           release_name: Release ${{ steps.version.outputs.new_version }}
           body: |
-            $(echo "Release notes for version ${{ steps.version.outputs.new_version }}:")
-            $(cat release_notes.txt)
+            echo "Release notes for version ${{ steps.version.outputs.new_version }}:"
+            cat release_notes.txt
           token: ${{ secrets.GITHUB_TOKEN }}
