@@ -70,7 +70,7 @@ jobs:
       - name: Determine next version
         id: version
         run: |
-          last_tag=$(git describe --abbrev=0 --always)
+          last_tag=$(git describe --abbrev=0)
           commit_range="${last_tag}..HEAD"
           major=0
           minor=0
@@ -98,6 +98,13 @@ jobs:
           echo "NEW VERSION SHOULD BE => $new_version"
           echo "::set-output name=new_version::$new_version"
 
+      - name: Determine commits since last tag
+        id: commits
+        run: |
+          last_tag=$(git describe --abbrev=0)
+          commit_range="${last_tag}..HEAD"
+          git log --pretty=format:"%h %s" "$commit_range" > commits.txt
+
       - name: Create new tag
         run: git tag -a ${{ steps.version.outputs.new_version }} -m "Version ${{ steps.version.outputs.new_version }}"
         env:
@@ -106,7 +113,6 @@ jobs:
       - name: Generate release notes
         id: release_notes
         run: |
-          touch commits.txt
           while IFS= read -r line; do
             commit_hash=$(echo "$line" | awk '{print $1}')
             commit_msg=$(echo "$line" | awk '{$1=""; print $0}')
@@ -147,6 +153,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.new_version }}
           release_name: Release ${{ steps.version.outputs.new_version }}
           body: |
-            echo "Release notes for version ${{ steps.version.outputs.new_version }}:"
+            Release notes for version ${{ steps.version.outputs.new_version }}:
             cat release_notes.txt
           token: ${{ secrets.GITHUB_TOKEN }}
