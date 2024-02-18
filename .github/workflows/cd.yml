@@ -10,6 +10,7 @@ jobs:
     outputs:
       new_version: ${{ steps.get-latest-release.outputs.new_version }}
     steps:
+      - uses: actions/checkout@v3
       - name: Determine next version
         id: version
         run: |
