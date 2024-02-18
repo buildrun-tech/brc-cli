@@ -78,7 +78,7 @@ jobs:
       - name: Determine next version
         id: version
         run: |
-          git fetch --tags
+          git fetch
           last_tag=${{ steps.previous_tag.outputs.previous_tag }}
           commit_range="${last_tag}..HEAD"
           major=0
