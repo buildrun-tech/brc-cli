@@ -1,0 +1,73 @@
+name: CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  get-latest-release-number:
+    runs-on: ubuntu-latest
+    outputs:
+      latest_release_number: ${{ steps.get-latest-release.outputs.release_number }}
+    steps:
+      - name: Get latest release number
+        id: get-latest-release
+        run: echo "::set-output name=release_number::$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name' | cut -c 2- | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')"
+
+  re-build:
+    needs: get-latest-release-number
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package --file app/pom.xml
+
+  re-test:
+    needs: get-latest-release-number
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Test with Maven
+        run: mvn test --file app/pom.xml
+
+  create-binary:
+    needs: [re-test, re-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up GraalVM Java 21
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          cache: 'gradle'
+
+      - name: Compile to native image
+        run: ./mvnw -Pnative native:compile
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./target
+          tag_name: ${{ needs.get-latest-release-number.outputs.latest_release_number }}
+          release_name: Release ${{ needs.get-latest-release-number.outputs.latest_release_number }}
+          body: |
+            Yeah! Version ${{ needs.get-latest-release-number.outputs.latest_release_number }} of BRC is now available!
+          token: ${{ secrets.GITHUB_TOKEN }}
