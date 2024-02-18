@@ -121,7 +121,7 @@ jobs:
         id: release_notes
         run: |
           echo "## What's changed" > release_notes.md
-          git log --pretty=format:"%h %s by %an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
+          git log --pretty=format:"%h %s by @%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
           while read line; do
             case "$line" in
               *'feat:'*)
@@ -141,7 +141,7 @@ jobs:
 
           echo "" >> release_notes.md
           echo "## Contributors" >> release_notes.md
-          git log --format="%an" | sort -u >> release_notes.md
+          git log --pretty=format:"@%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | sort -u >> release_notes.md
           
           echo "" >> release_notes.md
           echo "**Full Changelog**: https://github.com/buildrun-tech/brc-cli/commits/${{ steps.latest_tag.outputs.latest_tag }}" >> changelog.md
