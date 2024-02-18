@@ -5,14 +5,41 @@ on:
     branches: [ "main" ]
 
 jobs:
-  get-latest-release-number:
+  determine-next-version-number:
     runs-on: ubuntu-latest
     outputs:
-      latest_release_number: ${{ steps.get-latest-release.outputs.release_number }}
+      new_version: ${{ steps.get-latest-release.outputs.new_version }}
     steps:
-      - name: Get latest release number
-        id: get-latest-release
-        run: echo "::set-output name=release_number::$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest | jq -r '.tag_name' | cut -c 2- | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')"
+      - name: Determine next version
+        id: version
+        run: |
+          last_tag=$(git describe --abbrev=0)
+          commit_range="${last_tag}..HEAD"
+          major=0
+          minor=0
+          patch=0
+          while IFS= read -r line; do
+            case "$line" in
+              *'feat:'*)
+                minor=$((minor + 1))
+                ;;
+              *'fix:'*)
+                patch=$((patch + 1))
+                ;;
+              *'BREAKING CHANGE:'*)
+                major=$((major + 1))
+                ;;
+            esac
+          done < <(git log --pretty=format:"%s" "$commit_range")
+          if [ $major -gt 0 ]; then
+            new_version="$((major + 1)).0.0"
+          elif [ $minor -gt 0 ]; then
+            new_version="$major.$((minor + 1)).0"
+          else
+            new_version="$major.$minor.$((patch + 1))"
+          fi
+          echo "NEW VERSION SHOULD BE => $new_version"
+          echo "::set-output name=new_version::$new_version"
 
   re-build:
     needs: get-latest-release-number
@@ -71,12 +98,14 @@ jobs:
           mvn -Pnative native:compile --file app/pom.xml
 
       - name: Create GitHub Release
+        id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             ${{ github.workspace }}
-          tag_name: ${{ needs.get-latest-release-number.outputs.latest_release_number }}
-          release_name: Release ${{ needs.get-latest-release-number.outputs.latest_release_number }}
+          tag_name: ${{ needs.get-latest-release-number.outputs.new_version }}
+          release_name: Release ${{ needs.get-latest-release-number.outputs.new_version }}
           body: |
-            Yeah! Version ${{ needs.get-latest-release-number.outputs.latest_release_number }} of BRC is now available!
+            $(echo "Release notes for version ${{ needs.get-latest-release-number.outputs.new_version }}:")
+            $(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
           token: ${{ secrets.GITHUB_TOKEN }}
