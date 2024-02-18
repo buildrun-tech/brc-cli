@@ -121,7 +121,7 @@ jobs:
         id: release_notes
         run: |
           echo "## What's changed" > release_notes.md
-          git log --pretty=format:"%h %s" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
+          git log --pretty=format:"%h %s by %an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
           while read line; do
             case "$line" in
               *'feat:'*)
