@@ -85,27 +85,24 @@ jobs:
           minor=$(echo "$last_tag" | cut -d. -f2)
           patch=$(echo "$last_tag" | cut -d. -f3)
           has_feat=false
-          while IFS= read -r line; do
-            subject=$(echo "$line" | cut -d' ' -f2-)  # Extract the commit subject
-            case "$subject" in
+          has_breaking_change=false
+          git log --pretty=format:"%s" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
+          while read line; do
+            case "$line" in
               *'feat:'*)
-                echo "has_feat to true because of [$subject]"
                 has_feat=true
                 ;;
               *'fix:'*)
-                echo "patch incremented because of [$subject]"
                 patch=$((patch + 1))
                 ;;
               *'BREAKING CHANGE:'*)
-                echo "has_breaking_change to true because of [$subject]"
                 has_breaking_change=true
                 ;;
               *)
-                echo "no pattern matched, patch incremented because of [$subject]"
                 patch=$((patch + 1))
                 ;;
             esac
-          done < <(git log --pretty=format:"%h %s" "$commit_range")
+          done
           if [ "$has_breaking_change" = true ]; then
             major=$((major + 1))
             minor=0
