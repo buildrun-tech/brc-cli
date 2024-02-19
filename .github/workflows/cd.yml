@@ -80,28 +80,28 @@ jobs:
         run: |
           git fetch
           last_tag=${{ steps.previous_tag.outputs.previous_tag }}
-          commit_range="${last_tag}..HEAD"
+          commit_range=$(git rev-list --abbrev-commit --reverse ${last_tag}..HEAD)
           major=$(echo "$last_tag" | cut -d. -f1)
           minor=$(echo "$last_tag" | cut -d. -f2)
           patch=$(echo "$last_tag" | cut -d. -f3)
           has_feat=false
           has_breaking_change=false
-          while IFS= read -r line; do
-            echo $line
-            case "$line" in
+          for hash in $commit_range; do
+          subject=$(git log --format="%s" -n 1 $hash)
+            case "$subject" in
               *'feat:'*)
-                echo "has_feat=true because of [$line]"
+                echo "has_feat=true because of [$subject]"
                 has_feat=true
                 ;;
               *'BREAKING CHANGE:'*)
-                echo "has_breaking_change=true because of [$line]"
+                echo "has_breaking_change=true because of [$subject]"
                 has_breaking_change=true
                 ;;
               *)
-                echo "not feat not breaking change, commit -> [$line]"
+                echo "not feat not breaking change, commit -> [$subject]"
                 ;;
             esac
-          done < <(git log --pretty=format:"%s" "$commit_range")
+          done
           if [ "$has_breaking_change" = true ]; then
             major=$((major + 1))
             minor=0
@@ -115,7 +115,6 @@ jobs:
           new_version="$major.$minor.$patch"
           echo "NEW VERSION SHOULD BE => $new_version"
           echo "::set-output name=new_version::$new_version"
-      
       
 
       - name: Create new tag
@@ -135,26 +134,27 @@ jobs:
         id: release_notes
         run: |
           git fetch
+          commit_range=$(git rev-list --abbrev-commit --reverse ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }})
           echo "## What's changed" > release_notes.md
-          git log --pretty=format:"%h %s by @%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
-          while read line; do
-            echo $line
-            case "$line" in
-              *'feat:'*)
-                echo "* **Feature:** ${line#*:}" >> release_notes.md
-                ;;
-              *'fix:'*)
-                echo "* **Fix:** ${line#*:}" >> release_notes.md
-                ;;
-              *'BREAKING CHANGE:'*)
-                echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
-                ;;
-              *)
-                echo "* ${line#*:}" >> release_notes.md
-                ;;
-            esac
+                  
+          for hash in $commit_range; do
+            subject=$(git log --format="%s" -n 1 $hash)
+              case "$subject" in
+                *'BREAKING CHANGE:'*)
+                  echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
+                  ;;
+                *'feat:'*)
+                  echo "* **Feature:** ${line#*:}" >> release_notes.md
+                  has_feat=true
+                  ;;
+                *'fix:'*)
+                  echo "* **Fix:** ${line#*:}" >> release_notes.md
+                  ;;
+                *)
+                  echo "* ${line#*:}" >> release_notes.md
+                  ;;
+              esac
           done
-
           echo "" >> release_notes.md
 
           echo "" >> release_notes.md
