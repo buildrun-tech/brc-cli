@@ -134,7 +134,7 @@ jobs:
         id: release_notes
         run: |
           git fetch
-          commit_range=$(git rev-list --abbrev-commit --reverse ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }})
+          commit_range=$(git rev-list --abbrev-commit --reverse ${{ steps.previous_tag.outputs.previous_tag }}..HEAD)
           echo "## What's changed" > release_notes.md
                   
           for hash in $commit_range; do
