@@ -138,7 +138,7 @@ jobs:
           echo "## What's changed" > release_notes.md
                   
           for hash in $commit_range; do
-            subject=$(git log --format="%s" -n 1 $hash)
+            subject=$(git log --format="%h %s by @%an" -n 1 $hash)
               case "$subject" in
                 *'BREAKING CHANGE:'*)
                   echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
