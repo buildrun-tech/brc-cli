@@ -138,7 +138,7 @@ jobs:
                 echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
                 ;;
               *)
-                echo "* ${line}" >> release_notes.md
+                echo "* ${line#*:}" >> release_notes.md
                 ;;
             esac
           done
