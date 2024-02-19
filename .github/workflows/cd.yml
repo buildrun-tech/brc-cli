@@ -154,9 +154,7 @@ jobs:
           done
 
           echo "" >> release_notes.md
-          echo "## Contributors" >> release_notes.md
-          git log --pretty=format:"@%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | sort -u >> release_notes.md
-          
+
           echo "" >> release_notes.md
           echo "**Full Changelog**: https://github.com/buildrun-tech/brc-cli/commits/${{ steps.previous_tag.outputs.previous_tag }}" >> release_notes.md
 
