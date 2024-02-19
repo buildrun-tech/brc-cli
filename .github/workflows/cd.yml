@@ -139,21 +139,21 @@ jobs:
                   
           for hash in $commit_range; do
             subject=$(git log --format="%h %s by @%an" -n 1 $hash)
-              case "$subject" in
-                *'BREAKING CHANGE:'*)
-                  echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
-                  ;;
-                *'feat:'*)
-                  echo "* **Feature:** ${line#*:}" >> release_notes.md
-                  has_feat=true
-                  ;;
-                *'fix:'*)
-                  echo "* **Fix:** ${line#*:}" >> release_notes.md
-                  ;;
-                *)
-                  echo "* ${line#*:}" >> release_notes.md
-                  ;;
-              esac
+            case "$subject" in
+              *'BREAKING CHANGE:'*)
+                echo "* **Breaking Change:** ${line#*:}" >> release_notes.md
+                ;;
+              *'feat:'*)
+                echo "* **Feature:** ${line#*:}" >> release_notes.md
+                has_feat=true
+                ;;
+              *'fix:'*)
+                echo "* **Fix:** ${line#*:}" >> release_notes.md
+                ;;
+              *)
+                echo "* ${line#*:}" >> release_notes.md
+                ;;
+            esac
           done
           echo "" >> release_notes.md
 
