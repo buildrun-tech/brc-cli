@@ -89,13 +89,20 @@ jobs:
             subject=$(echo "$line" | cut -d' ' -f2-)  # Extract the commit subject
             case "$subject" in
               *'feat:'*)
+                echo "has_feat to true because of [$subject]"
                 has_feat=true
                 ;;
               *'fix:'*)
+                echo "patch incremented because of [$subject]"
                 patch=$((patch + 1))
                 ;;
               *'BREAKING CHANGE:'*)
+                echo "has_breaking_change to true because of [$subject]"
                 has_breaking_change=true
+                ;;
+              *)
+                echo "no pattern matched, patch incremented because of [$subject]"
+                patch=$((patch + 1))
                 ;;
             esac
           done < <(git log --pretty=format:"%h %s" "$commit_range")
