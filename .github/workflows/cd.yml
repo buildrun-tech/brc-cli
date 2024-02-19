@@ -87,6 +87,7 @@ jobs:
           has_feat=false
           has_breaking_change=false
           while IFS= read -r line; do
+            echo $line
             case "$line" in
               *'feat:'*)
                 echo "has_feat=true because of [$line]"
@@ -136,6 +137,7 @@ jobs:
           echo "## What's changed" > release_notes.md
           git log --pretty=format:"%h %s by @%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
           while read line; do
+            echo $line
             case "$line" in
               *'feat:'*)
                 echo "* **Feature:** ${line#*:}" >> release_notes.md
