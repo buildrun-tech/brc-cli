@@ -5,8 +5,19 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
 
+  conventional-commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: webiny/action-conventional-commits@v1.3.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Optional, for private repositories.
+          allowed-commit-types: "feat,fix,BREAKING CHANGE,docs,ci,chore,refactor,test,perf,style" # Optional, set if you want a subset of commit types to be allowed.
+
+  build:
+    needs: conventional-commits
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +33,7 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file app/pom.xml
   test:
-
+    needs: conventional-commits
     runs-on: ubuntu-latest
 
     steps:
