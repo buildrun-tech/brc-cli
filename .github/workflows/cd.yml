@@ -121,6 +121,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Push new tag
+        if: steps.commits.outputs.new_version != '0.0.0'
+        run: git push origin ${{ steps.version.outputs.new_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate release notes
         id: release_notes
         run: |
@@ -157,12 +163,6 @@ jobs:
         run: |
           cat release_notes.md
         continue-on-error: false
-
-      - name: Push new tag
-        if: steps.commits.outputs.new_version != '0.0.0'
-        run: git push origin ${{ steps.version.outputs.new_version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
         id: create_release
