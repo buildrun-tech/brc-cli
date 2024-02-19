@@ -90,16 +90,12 @@ jobs:
           while read line; do
             case "$line" in
               *'feat:'*)
+                echo "has_feat=true because of [$line]"
                 has_feat=true
                 ;;
-              *'fix:'*)
-                patch=$((patch + 1))
-                ;;
               *'BREAKING CHANGE:'*)
+                echo "has_breaking_change=true because of [$line]"
                 has_breaking_change=true
-                ;;
-              *)
-                patch=$((patch + 1))
                 ;;
             esac
           done
