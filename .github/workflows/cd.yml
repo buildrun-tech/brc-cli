@@ -134,6 +134,7 @@ jobs:
       - name: Generate release notes
         id: release_notes
         run: |
+          git fetch
           echo "## What's changed" > release_notes.md
           git log --pretty=format:"%h %s by @%an" ${{ steps.previous_tag.outputs.previous_tag }}..${{ steps.version.outputs.new_version }} | \
           while read line; do
