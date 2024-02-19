@@ -35,9 +35,6 @@ brc myconfig
 
 ### Support
 
-[WORK IN PROGRESS]
-
-
 
 
 
